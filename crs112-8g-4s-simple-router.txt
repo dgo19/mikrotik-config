@@ -1,0 +1,68 @@
+# apr/19/2022 18:55:36 by RouterOS 7.2.1
+#
+# model = CRS112-8G-4S
+/interface bridge
+add name=br-lan
+/interface wireless security-profiles
+set [ find default=yes ] supplicant-identity=MikroTik
+/ip pool
+add name=dhcp_pool0 ranges=192.168.110.101-192.168.110.199
+/ip dhcp-server
+add address-pool=dhcp_pool0 interface=br-lan name=dhcp1
+/port
+set 0 name=serial0
+/interface bridge port
+add bridge=br-lan interface=ether2
+add bridge=br-lan interface=ether3
+add bridge=br-lan interface=ether4
+add bridge=br-lan interface=ether5
+add bridge=br-lan interface=ether6
+add bridge=br-lan interface=ether7
+add bridge=br-lan interface=ether8
+/ip address
+add address=192.168.110.1/24 interface=br-lan network=192.168.110.0
+/ip dhcp-client
+add interface=ether1
+/ip dhcp-server network
+add address=192.168.110.0/24 gateway=192.168.110.1
+/ip dns
+set allow-remote-requests=yes servers=192.168.110.1
+/ip firewall filter
+add action=fasttrack-connection chain=forward comment="forwarding fasttrack for established,related connections" connection-state=established,related hw-offload=no
+add action=accept chain=forward comment="forward: allow established,related" connection-state=established,related
+add action=accept chain=forward comment="allow internet access for internal network" connection-state=new in-interface=br-lan out-interface=ether1
+add action=accept chain=input comment="allow access from internal network" connection-state=new in-interface=br-lan src-address=192.168.110.0/24
+add action=accept chain=output comment="allow router to access internet" out-interface=ether1
+add action=accept chain=input comment="input: allow established,related" connection-state=established,related
+add action=accept chain=output comment="output: allow established,related" connection-state=established,related
+add action=log chain=input comment="log dropped input packets"
+add action=log chain=forward comment="log dropped forward packets"
+add action=log chain=output comment="log dropped output packets"
+add action=drop chain=input comment="input: drop all"
+add action=drop chain=forward comment="forward: drop all"
+add action=drop chain=output comment="output: drop all"
+/ip firewall nat
+add action=masquerade chain=srcnat comment="NAT to Internet Router" out-interface=ether1
+/ipv6 address
+add from-pool=wtnet_ipv6 interface=br-lan
+/ipv6 dhcp-client
+add add-default-route=yes interface=ether1 pool-name=wtnet_ipv6 pool-prefix-length=60 request=address,prefix
+/ipv6 firewall filter
+add action=accept chain=forward comment="input: allow established,related" connection-state=established,related
+add action=accept chain=input comment="forward: allow established,related" connection-state=established,related
+add action=accept chain=output comment="output: allow established,related" connection-state=established,related
+add action=accept chain=input comment="allow input icmpv6" protocol=icmpv6
+add action=accept chain=forward comment="allow forward icmpv6" protocol=icmpv6
+add action=accept chain=forward comment="allow internet access for internal network" in-interface=br-lan out-interface=ether1
+add action=accept chain=output comment="allow router to access internet" out-interface=ether1
+add action=accept chain=input comment="allow access from internal network" in-interface=br-lan
+add action=log chain=input comment="log dropped input packets"
+add action=log chain=forward comment="log dropped forward packets"
+add action=drop chain=input comment="input: drop all" in-interface=ether1
+add action=drop chain=forward comment="forward: drop all" in-interface=ether1
+/system clock
+set time-zone-name=Europe/Berlin
+/system ntp client
+set enabled=yes
+/system ntp server
+set enabled=yes
