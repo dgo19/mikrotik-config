@@ -56,6 +56,7 @@ add action=accept chain=forward comment="allow forward icmpv6" protocol=icmpv6
 add action=accept chain=forward comment="allow internet access for internal network" in-interface=br-lan out-interface=ether1
 add action=accept chain=output comment="allow router to access internet" out-interface=ether1
 add action=accept chain=input comment="allow access from internal network" in-interface=br-lan
+add action=accept chain=input comment="allow dhcpv6" dst-port=546 protocol=udp src-port=547
 add action=log chain=input comment="log dropped input packets"
 add action=log chain=forward comment="log dropped forward packets"
 add action=drop chain=input comment="input: drop all" in-interface=ether1
